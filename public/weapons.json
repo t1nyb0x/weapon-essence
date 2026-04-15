@@ -1,0 +1,44 @@
+[
+  {
+    "id": "weapon-001",
+    "name": "スターライトブレード",
+    "rarity": 6,
+    "category": "sword",
+    "description": "星の光を宿した伝説の剣。",
+    "skills": [
+      {
+        "name": "光刃",
+        "description": "光のエネルギーを纏った攻撃を行い、敵に物理ダメージを与える。"
+      },
+      {
+        "name": "星の加護",
+        "description": "一定時間、味方全体の防御力を上昇させる。"
+      }
+    ]
+  },
+  {
+    "id": "weapon-002",
+    "name": "鉄拳グローブ",
+    "rarity": 4,
+    "category": "glove",
+    "description": "鍛え上げられた鉄製のグローブ。",
+    "skills": [
+      {
+        "name": "鉄拳",
+        "description": "強力な右ストレートで敵に大ダメージを与える。"
+      }
+    ]
+  },
+  {
+    "id": "weapon-003",
+    "name": "無名の弓",
+    "rarity": 3,
+    "skills": []
+  },
+  {
+    "id": "",
+    "name": "不正エントリ（idが空）",
+    "rarity": 5,
+    "skills": []
+  }
+]

@@ -1,0 +1,30 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 1rem;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.message {
+  color: #6b7280;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.link {
+  color: #2563eb;
+  font-size: 0.875rem;
+  text-decoration: underline;
+}
+
+.link:hover {
+  color: #1d4ed8;
+}
