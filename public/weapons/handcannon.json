@@ -1,11 +1,10 @@
 [
   {
-    "id": 1,
+    "id": "handcannon_1",
     "name": "サンダーバレット",
     "rarity": 5,
-    "category": "handcannon",
     "description": "雷光を模した特殊弾薬を使用するハンドキャノン。高速連射と高威力を両立する。",
-    "skills": [
+    "effectRefs": [
       { "type": "skill", "id": 3 },
       { "type": "additional", "id": 2 }
     ]

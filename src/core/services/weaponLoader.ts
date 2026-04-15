@@ -1,4 +1,10 @@
-import type { Skill, SkillRef, Weapon } from "../models/types";
+import type {
+  RawWeapon,
+  Skill,
+  SkillRef,
+  Weapon,
+  WeaponCategory,
+} from "../models/types";
 
 const EFFECT_FILES = [
   "/effects/base-effects.json",
@@ -6,22 +12,13 @@ const EFFECT_FILES = [
   "/effects/skill-effects.json",
 ] as const;
 
-const WEAPON_CATEGORY_FILES = [
-  "/weapons/sword.json",
-  "/weapons/greatsword.json",
-  "/weapons/handcannon.json",
-  "/weapons/polearm.json",
-  "/weapons/arts-unit.json",
-] as const;
-
-interface RawWeapon {
-  id: number;
-  name: string;
-  rarity: number;
-  category: string;
-  description?: string;
-  skills: SkillRef[];
-}
+const WEAPON_CATEGORIES: WeaponCategory[] = [
+  "sword",
+  "greatsword",
+  "handcannon",
+  "polearm",
+  "arts-unit",
+];
 
 function isValidSkill(entry: unknown): entry is Skill {
   if (typeof entry !== "object" || entry === null) return false;
@@ -54,14 +51,12 @@ function isValidSkillRef(ref: unknown): ref is SkillRef {
 function isValidRawWeapon(entry: unknown): entry is RawWeapon {
   if (typeof entry !== "object" || entry === null) return false;
   const e = entry as Record<string, unknown>;
-  if (!Number.isInteger(e["id"]) || (e["id"] as number) < 1) return false;
+  if (typeof e["id"] !== "string" || e["id"].length === 0) return false;
   if (typeof e["name"] !== "string" || e["name"].length === 0) return false;
-  if (typeof e["category"] !== "string" || e["category"].length === 0)
-    return false;
   if (!Number.isInteger(e["rarity"]) || (e["rarity"] as number) < 1)
     return false;
-  if (!Array.isArray(e["skills"])) return false;
-  if (!(e["skills"] as unknown[]).every(isValidSkillRef)) return false;
+  if (!Array.isArray(e["effectRefs"])) return false;
+  if (!(e["effectRefs"] as unknown[]).every(isValidSkillRef)) return false;
   return true;
 }
 
@@ -93,9 +88,10 @@ async function fetchSkills(): Promise<Map<string, Skill>> {
 }
 
 async function fetchCategory(
-  path: string,
+  category: WeaponCategory,
   skillMap: Map<string, Skill>,
 ): Promise<Weapon[]> {
+  const path = `/weapons/${category}.json`;
   const response = await fetch(path);
   if (!response.ok) {
     throw new Error(`${path} の読み込みに失敗しました: ${response.status}`);
@@ -107,11 +103,16 @@ async function fetchCategory(
   const weapons: Weapon[] = [];
   for (const entry of raw) {
     if (isValidRawWeapon(entry)) {
-      const compositeId = `${entry.category.replace(/\s+/g, "-")}-${entry.id}`;
-      const skills = entry.skills
+      const { effectRefs, ...weaponData } = entry;
+      const skills = effectRefs
         .map((ref) => skillMap.get(`${ref.type}:${ref.id}`))
         .filter((s): s is Skill => s !== undefined);
-      weapons.push({ ...entry, id: compositeId, skills });
+      weapons.push({
+        ...weaponData,
+        category,
+        uid: entry.id,
+        skills,
+      });
     } else {
       console.warn("不正な武器エントリを除外しました:", entry);
     }
@@ -122,7 +123,7 @@ async function fetchCategory(
 export async function weaponLoader(): Promise<Weapon[]> {
   const skillMap = await fetchSkills();
   const results = await Promise.all(
-    WEAPON_CATEGORY_FILES.map((path) => fetchCategory(path, skillMap)),
+    WEAPON_CATEGORIES.map((category) => fetchCategory(category, skillMap)),
   );
   return results.flat();
 }

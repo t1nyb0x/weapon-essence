@@ -1,11 +1,10 @@
 [
   {
-    "id": 1,
+    "id": "sword_1",
     "name": "スターライトブレード",
     "rarity": 6,
-    "category": "sword",
     "description": "星の光を宿した伝説の剣。長年の戦場で磨かれた鋭利な刃は、光のエネルギーを纏う。",
-    "skills": [
+    "effectRefs": [
       { "type": "skill", "id": 6 },
       { "type": "base", "id": 2 }
     ]

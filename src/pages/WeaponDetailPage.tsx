@@ -17,12 +17,12 @@ export function WeaponDetailPage({ imageStorage }: WeaponDetailPageProps) {
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const weapon = weapons.find((w) => w.id === weaponId);
+  const weapon = weapons.find((w) => w.uid === weaponId);
 
   useEffect(() => {
     if (!weapon) return;
     let objectUrl: string | undefined;
-    imageStorage.getImage(weapon.id).then((stored) => {
+    imageStorage.getImage(weapon.uid).then((stored) => {
       if (stored) {
         objectUrl = URL.createObjectURL(stored.blob);
         setImageUrl(objectUrl);
@@ -42,7 +42,7 @@ export function WeaponDetailPage({ imageStorage }: WeaponDetailPageProps) {
   async function handleSave(file: File) {
     if (!weapon) return;
     const image: UserWeaponImage = {
-      weaponId: weapon.id,
+      weaponId: weapon.uid,
       blob: file,
       fileName: file.name,
       mimeType: file.type as UserWeaponImage["mimeType"],
@@ -63,7 +63,7 @@ export function WeaponDetailPage({ imageStorage }: WeaponDetailPageProps) {
 
   async function handleDelete() {
     if (!weapon) return;
-    await imageStorage.deleteImage(weapon.id);
+    await imageStorage.deleteImage(weapon.uid);
     setImageUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return undefined;
@@ -77,7 +77,11 @@ export function WeaponDetailPage({ imageStorage }: WeaponDetailPageProps) {
       </Link>
       <WeaponDetail weapon={weapon} imageUrl={imageUrl} />
       <section className={styles.uploaderSection}>
-        <WeaponImageUploader hasImage={!!imageUrl} onSave={handleSave} onDelete={handleDelete} />
+        <WeaponImageUploader
+          hasImage={!!imageUrl}
+          onSave={handleSave}
+          onDelete={handleDelete}
+        />
         {saveError && (
           <p role="alert" className={styles.saveError}>
             {saveError}

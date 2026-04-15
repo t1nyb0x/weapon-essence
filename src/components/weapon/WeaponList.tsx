@@ -14,7 +14,7 @@ export function WeaponList({ weapons }: WeaponListProps) {
   return (
     <ul className={styles.list}>
       {weapons.map((weapon) => (
-        <li key={weapon.id} className={styles.item}>
+        <li key={weapon.uid} className={styles.item}>
           <WeaponCard weapon={weapon} />
         </li>
       ))}

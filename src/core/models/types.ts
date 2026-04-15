@@ -16,14 +16,26 @@ export interface Skill {
   description: string;
 }
 
-export interface Weapon {
+export type WeaponCategory =
+  | "sword"
+  | "greatsword"
+  | "handcannon"
+  | "polearm"
+  | "arts-unit";
+
+export interface RawWeapon {
   id: string;
   name: string;
   rarity: number;
-  category?: string;
   description?: string;
-  skills: Skill[];
+  effectRefs: SkillRef[];
 }
+
+export type Weapon = Omit<RawWeapon, "effectRefs"> & {
+  category: WeaponCategory;
+  uid: string;
+  skills: Skill[];
+};
 
 export interface UserWeaponImage {
   weaponId: string;

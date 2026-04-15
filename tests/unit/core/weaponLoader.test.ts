@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { weaponLoader } from "../../../src/core/services/weaponLoader";
-import type { Skill, Weapon } from "../../../src/core/models/types";
+import type { Skill } from "../../../src/core/models/types";
 
 const NUM_CATEGORIES = 5;
 const NUM_EFFECT_FILES = 3;
@@ -54,18 +54,16 @@ describe("weaponLoader", () => {
       description: "鋭い斬撃を放つ",
     };
     const swordWeapon = {
-      id: 1,
+      id: "sword_1",
       name: "テストソード",
       rarity: 5,
-      category: "sword",
-      skills: [{ type: "skill", id: 1 }],
+      effectRefs: [{ type: "skill", id: 1 }],
     };
     const gsWeapon = {
-      id: 1,
+      id: "greatsword_1",
       name: "テスト大剣",
       rarity: 4,
-      category: "greatsword",
-      skills: [],
+      effectRefs: [],
     };
     mockAllFetchesOk(
       [[skill], [], []],
@@ -73,9 +71,11 @@ describe("weaponLoader", () => {
     );
     const result = await weaponLoader();
     expect(result).toHaveLength(2);
-    expect(result[0].id).toBe("sword-1");
+    expect(result[0].uid).toBe("sword_1");
+    expect(result[0].category).toBe("sword");
     expect(result[0].skills).toEqual([skill]);
-    expect(result[1].id).toBe("greatsword-1");
+    expect(result[1].uid).toBe("greatsword_1");
+    expect(result[1].category).toBe("greatsword");
   });
 
   it("いずれかのファイルで fetch が失敗した場合は throw する", async () => {
@@ -90,16 +90,15 @@ describe("weaponLoader", () => {
 
   it("不正エントリを除外し、正常エントリは表示継続する", async () => {
     const validWeapon = {
-      id: 1,
+      id: "sword_1",
       name: "正常",
       rarity: 5,
-      category: "sword",
-      skills: [],
+      effectRefs: [],
     };
     const invalidEntries = [
-      { id: 0, name: "不正id", rarity: 5, category: "sword", skills: [] },
-      { id: 1, name: "カテゴリなし", rarity: 5, skills: [] },
-      { id: 1, name: "不正rarity", rarity: 0, category: "sword", skills: [] },
+      { id: "", name: "不正id", rarity: 5, effectRefs: [] },
+      { id: "sword_1", name: "effectRefsなし", rarity: 5 },
+      { id: "sword_1", name: "不正rarity", rarity: 0, effectRefs: [] },
     ];
     mockAllFetchesOk(EMPTY_EFFECTS, [
       [validWeapon, ...invalidEntries],
@@ -110,7 +109,7 @@ describe("weaponLoader", () => {
     ]);
     const result = await weaponLoader();
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("sword-1");
+    expect(result[0].uid).toBe("sword_1");
   });
 
   it("全カテゴリが0件でも throw しない", async () => {
@@ -119,9 +118,9 @@ describe("weaponLoader", () => {
     expect(result).toHaveLength(0);
   });
 
-  it("skills が空配列の武器も正常に返す", async () => {
+  it("effectRefs が空配列の武器も正常に返す", async () => {
     const data = [
-      { id: 1, name: "スキルなし", rarity: 1, category: "sword", skills: [] },
+      { id: "sword_1", name: "スキルなし", rarity: 1, effectRefs: [] },
     ];
     mockAllFetchesOk(EMPTY_EFFECTS, [data, [], [], [], []]);
     const result = await weaponLoader();
