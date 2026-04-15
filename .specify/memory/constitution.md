@@ -1,4 +1,6 @@
-# discord-twitter-embed-rx コンスティテューション
+# weapon-essential コンスティテューション
+
+> Endfield 武器＆スキル早見アプリ（CSR SPA）の開発原則
 
 ## コア原則
 
@@ -9,12 +11,12 @@
 
 - 意図が自明な命名を採用すること（省略形・単一文字変数名は原則禁止）。
 - 関数・メソッドは副作用を最小化し、戻り値の型を明示すること。
-- 魔法の数値・文字列はすべて定数または Enum として抽出すること。
+- 魔法の数値・文字列はすべて定数として `src/core/constants.ts` に抽出すること。
 - コードの重複は即座に抽象化し、同じロジックを2箇所以上に書かないこと（DRY）。
 
-**根拠**: レイヤードアーキテクチャ（Core / Adapter / Infrastructure）を持つこの構成では、
+**根拠**: Core / Adapters / Components の3層構造を持つこの SPA では、
 各層の境界を越えるコードの可読性がバグ混入リスクと直結する。
-クリーンコードは長期的な開発速度の根幹である。
+クリーンコードは長期的な保守速度の根幹である。
 
 ---
 
@@ -28,19 +30,20 @@
 
 ```typescript
 // NG
-function handleMessage(message: Message | null) {
-  if (message !== null) {
-    if (containsTwitterUrl(message)) {
-      processMessage(message);
+function isValidWeapon(weapon: unknown) {
+  if (typeof weapon === "object" && weapon !== null) {
+    if ("id" in weapon && typeof weapon.id === "string") {
+      return weapon.id.length > 0;
     }
   }
+  return false;
 }
 
 // OK
-function handleMessage(message: Message | null): void {
-  if (message === null) return;
-  if (!containsTwitterUrl(message)) return;
-  processMessage(message);
+function isValidWeapon(weapon: unknown): boolean {
+  if (typeof weapon !== "object" || weapon === null) return false;
+  if (!("id" in weapon) || typeof weapon.id !== "string") return false;
+  return weapon.id.length > 0;
 }
 ```
 
@@ -54,13 +57,14 @@ function handleMessage(message: Message | null): void {
 すべてのモジュールはテストコードが書きやすい設計でなければならない（MUST）。
 
 - 依存関係は引数注入（DI）で渡し、モジュール内部でのハードコードを禁止する。
-- Discord.js・外部 Twitter API など副作用を持つライブラリへの直接呼び出しは、
-  薄いアダプター層（`ITwitterAdapter`・`EmbedBuilder` など）を介してのみ行う。
+- IndexedDB など副作用を持つブラウザ API への直接呼び出しは、
+  `IImageStorage` などのインターフェースを持つアダプター層（`adapters/`）を介してのみ行う。
 - テスト対象の関数は純粋関数を優先し、グローバル状態への依存を最小化すること。
-- Vitest を用いたユニットテストを各ドメインモジュールに対して作成すること。
+- Vitest を用いたユニットテストを各 Core モジュールに対して作成すること。
+  IndexedDB アダプターのテストは `fake-indexeddb` を使いブラウザなしで実行できるようにすること。
 
 **根拠**:
-Discord イベントハンドリングと外部 API 呼び出しは実装が複雑になりやすい。
+IndexedDB 操作と React コンポーネントのロジックが混在すると実装が複雑になりやすい。
 テスト可能な設計は早期にリグレッションを検出し、リファクタリングを安全に行う土台を提供する。
 
 ---
@@ -68,7 +72,7 @@ Discord イベントハンドリングと外部 API 呼び出しは実装が複�
 ### IV. メソッドサイズ制限
 
 関数・メソッドの行数は原則 **30行以内** とする。\
-複雑な処理（音声デコード、シーケンス評価ロジック等）は **最大60行** まで認める。
+複雑な処理（IndexedDB の初期化、複合バリデーション等）は **最大60行** まで認める。
 
 - 30行を超える場合は、コードレビュー時にレビュアーへ超過理由を明示すること（MUST）。
 - 60行を超えることは、いかなる理由があっても許可しない（MUST NOT）。
@@ -84,58 +88,56 @@ Discord イベントハンドリングと外部 API 呼び出しは実装が複�
 クラス・関数・モジュールはそれぞれ **1つの責務のみ**
 を持たなければならない（MUST）。
 
-- Discord のイベントハンドリングはアダプター層（`adapters/discord/`）に閉じること。
-- Twitter API との通信はインフラ層（`adapters/twitter/`）に閉じること。
-- Core 層（`core/`）は外部ライブラリに依存してはならない（MUST NOT）。
-- ファイル名はその責務を端的に表すこと（例: `TweetProcessor.ts`, `EmbedBuilder.ts`）。
+- UI ロジック（コンポーネント・ページ）は表示と直接関係するブラウザ処理に限定すること。
+- IndexedDB 操作はアダプター層（`adapters/indexeddb/`）に閉じること。
+- Core 層（`core/`）はブラウザ固有 API（`window`・`indexedDB` 等）に依存してはならない（MUST NOT）。
+- ファイル名はその責務を端的に表すこと（例: `weaponLoader.ts`、`imageValidator.ts`、`IndexedDbImageStorage.ts`）。
 
 **根拠**: SRP への違反は変更影響範囲を拡大し、テスト設計を困難にする。
-Discord Bot では Discord イベント処理・Twitter API 通信・ビジネスロジックが
-密結合しやすいため、境界を明確にコンスティテューションで定義する。
+React コンポーネントと IndexedDB 操作・バリデーションロジックが密結合しやすいため、
+境界を明確にコンスティテューションで定義する。
 
 ---
 
 ## 技術スタック
 
-| 役割                 | 技術                                        |
-| -------------------- | ------------------------------------------- |
-| 言語                 | TypeScript（strict モード必須）             |
-| ランタイム           | Node.js                                     |
-| ビルド               | tsc + tsc-alias                             |
-| 実行（開発）         | tsx                                         |
-| テスト               | Vitest（unit / integration / e2e）          |
-| リント               | oxlint                                      |
-| フォーマット         | oxfmt                                       |
-| Discord クライアント | discord.js v14                              |
-| 外部 Twitter API     | vxTwitter / fxTwitter（フォールバック構成） |
-| ストレージ           | Redis（返信ログ・重複排除）                 |
-| ロギング             | Winston + winston-daily-rotate-file         |
-| コンテナ             | Docker + Docker Compose                     |
-| パッケージ管理       | npm workspaces（bot / dashboard / shared）  |
-| ダッシュボード       | Astro.js（Git サブモジュール）              |
+| 役割               | 技術                                                |
+| ------------------ | --------------------------------------------------- |
+| 言語               | TypeScript 6.x（strict モード必須）                 |
+| フロントエンド     | React 19                                            |
+| ビルドツール       | Vite 8                                              |
+| ルーティング       | React Router v7                                     |
+| IndexedDB ラッパー | idb 8.x                                             |
+| CSS                | CSS Modules                                         |
+| テスト             | Vitest 4.x + React Testing Library + fake-indexeddb |
+| リント             | oxlint                                              |
+| フォーマット       | oxfmt                                               |
+| パッケージ管理     | npm（単一プロジェクト）                             |
+| 静的データ         | `public/weapons.json`（手動管理）                   |
+| ブラウザストレージ | IndexedDB（`idb` 経由）                             |
 
 **制約**:
 
 - `any` 型の使用を禁止する（MUST NOT）。型推論が困難な場合は `unknown` +
   型ガードを使うこと。
-- Core 層から Node.js 固有の API（`fs`・`net` 等）を直接呼び出してはならない（MUST NOT）。
-  Infrastructure 層のモジュールを介すること。
-- Redis クライアントはアプリケーション起動時に1度だけ初期化すること。
-- 外部 API（vxTwitter / fxTwitter）へのリクエストは必ず `HttpClient` を介すること。
+- Core 層からブラウザ固有 API（`window`・`indexedDB`・`document` 等）を
+  直接呼び出してはならない（MUST NOT）。`adapters/` 層を介すること。
+- IndexedDB の初期化（`openDB`）はアプリ起動時に1度だけ実行すること。
+- 画像データをいかなる形でもサーバーに送信してはならない（MUST NOT）。
 
 ---
 
 ## コード品質ゲート
 
-すべての PR はマージ前に以下のゲートをパスしなければならない（MUST）:
+コミット前・マージ前に以下のゲートをすべてパスしなければならない（MUST）:
 
-1. **Linting**: `oxlint src/` がエラーなしで通過すること。
-2. **フォーマット**: `oxfmt --check src/` がエラーなしで通過すること。
-3. **型チェック**: `tsc --noEmit` がエラーなしで通過すること。
-4. **ユニットテスト**: `vitest run` で全テストがグリーンであること。
-5. **カバレッジ**: Codecov へレポートが送信されること（CI で自動実行）。
-6. **メソッドサイズ**: 60行を超える関数が存在しないこと（レビュアーが目視確認）。
-7. **SRP チェック**: Core / Adapter / Infrastructure の責務が混在していないこと。
+1. **Linting**: `npm run lint`（`oxlint src/`）がエラーなしで通過すること。
+2. **フォーマット**: `npm run format:check`（`oxfmt --check src/`）がエラーなしで通過すること。
+3. **型チェック**: `npm run typecheck`（`tsc --noEmit`）がエラーなしで通過すること。
+4. **ユニットテスト**: `npm run test`（`vitest run`）で全テストがグリーンであること。
+5. **メソッドサイズ**: 60行を超える関数が存在しないこと（目視確認）。
+6. **SRP チェック**: Core / Adapters / Components の責務が混在していないこと（目視確認）。
+7. **セキュリティ**: 画像データのサーバー送信が発生しないこと（ネットワークリクエストに画像バイナリが含まれないこと）。
 
 ---
 
@@ -144,15 +146,11 @@ Discord Bot では Discord イベント処理・Twitter API 通信・ビジネ�
 このコンスティテューションは他のすべての開発プラクティスに優先する。\
 修正を行う場合は以下の手順を踏むこと:
 
-1. 変更内容と理由を PR の説明に明記する。
-2. `CONSTITUTION_VERSION`
-   をセマンティックバージョニングに従ってインクリメントする。
-3. `LAST_AMENDED_DATE` を更新する。
-4. 依存するテンプレート（plan / spec /
-   tasks）への影響を確認し、必要なら同時更新する。
-
-すべてのコードレビューにおいて、レビュアーはコンスティテューションへの準拠を確認する責任を持つ。
+1. 変更内容と理由をコミットメッセージまたは PR の説明に明記する。
+2. バージョンをセマンティックバージョニングに従ってインクリメントする。
+3. `最終修正日` を更新する。
+4. 依存するテンプレート（plan / spec / tasks）への影響を確認し、必要なら同時更新する。
 
 ---
 
-**バージョン**: 1.0.0 | **批准日**: 2026-04-05 | **最終修正日**: 2026-04-05
+**バージョン**: 1.0.0 | **批准日**: 2026-04-15 | **最終修正日**: 2026-04-15
