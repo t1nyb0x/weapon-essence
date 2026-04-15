@@ -1,10 +1,13 @@
 [
   {
-    "id": "artsunit-001",
+    "id": 1,
     "name": "エーテルコア",
     "rarity": 6,
     "category": "arts unit",
     "description": "高純度のエーテルを内包するアーツユニット。術式の増幅と安定化を同時に実現する。",
-    "skills": [1, 2]
+    "skills": [
+      { "type": "additional", "id": 1 },
+      { "type": "base", "id": 1 }
+    ]
   }
 ]

@@ -1,10 +1,13 @@
 [
   {
-    "id": "greatsword-001",
+    "id": 1,
     "name": "ヴォイドスラッシャー",
     "rarity": 6,
     "category": "greatsword",
     "description": "虚空の力を凝縮した巨大な大剣。その重量は並みの兵士では持ち上げることすらできない。",
-    "skills": [3, 4]
+    "skills": [
+      { "type": "skill", "id": 1 },
+      { "type": "skill", "id": 2 }
+    ]
   }
 ]

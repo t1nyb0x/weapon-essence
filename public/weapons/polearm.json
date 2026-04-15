@@ -1,10 +1,13 @@
 [
   {
-    "id": "polearm-001",
+    "id": 1,
     "name": "蒼天の穂先",
     "rarity": 5,
     "category": "polearm",
     "description": "天空を貫くような鋭い穂先を持つ槍。長いリーチで遠距離の敵にも届く。",
-    "skills": [7, 8]
+    "skills": [
+      { "type": "skill", "id": 4 },
+      { "type": "skill", "id": 5 }
+    ]
   }
 ]
