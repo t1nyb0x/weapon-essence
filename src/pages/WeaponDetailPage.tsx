@@ -77,11 +77,7 @@ export function WeaponDetailPage({ imageStorage }: WeaponDetailPageProps) {
       </Link>
       <WeaponDetail weapon={weapon} imageUrl={imageUrl} />
       <section className={styles.uploaderSection}>
-        <WeaponImageUploader
-          hasImage={!!imageUrl}
-          onSave={handleSave}
-          onDelete={handleDelete}
-        />
+        <WeaponImageUploader hasImage={!!imageUrl} onSave={handleSave} onDelete={handleDelete} />
         {saveError && (
           <p role="alert" className={styles.saveError}>
             {saveError}

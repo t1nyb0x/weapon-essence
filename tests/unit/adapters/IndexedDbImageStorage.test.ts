@@ -75,7 +75,9 @@ describe("IndexedDbImageStorage", () => {
     vi.stubGlobal("indexedDB", undefined);
     resetDbForTesting();
     const storage = new IndexedDbImageStorage();
-    await expect(storage.saveImage(makeImage("weapon-005"))).resolves.toBeUndefined();
+    await expect(
+      storage.saveImage(makeImage("weapon-005")),
+    ).resolves.toBeUndefined();
     await expect(storage.deleteImage("weapon-005")).resolves.toBeUndefined();
     vi.unstubAllGlobals();
   });

@@ -15,7 +15,9 @@ function getDb(): Promise<IDBPDatabase> | null {
     dbPromise = openDB(WEAPON_IMAGE_DB_NAME, WEAPON_IMAGE_DB_VERSION, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(WEAPON_IMAGE_STORE_NAME)) {
-          db.createObjectStore(WEAPON_IMAGE_STORE_NAME, { keyPath: "weaponId" });
+          db.createObjectStore(WEAPON_IMAGE_STORE_NAME, {
+            keyPath: "weaponId",
+          });
         }
       },
     });

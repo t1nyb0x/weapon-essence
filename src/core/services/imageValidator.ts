@@ -1,12 +1,7 @@
-import {
-  ALLOWED_MIME_TYPES,
-  WEAPON_IMAGE_MAX_BYTES,
-} from "../constants";
+import { ALLOWED_MIME_TYPES, WEAPON_IMAGE_MAX_BYTES } from "../constants";
 import type { AllowedMimeType } from "../models/types";
 
-type ValidationResult =
-  | { ok: true }
-  | { ok: false; message: string };
+type ValidationResult = { ok: true } | { ok: false; message: string };
 
 function isAllowedMimeType(mime: string): mime is AllowedMimeType {
   return (ALLOWED_MIME_TYPES as readonly string[]).includes(mime);

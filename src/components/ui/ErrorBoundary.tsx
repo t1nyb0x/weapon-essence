@@ -9,10 +9,7 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -33,10 +30,7 @@ export class ErrorBoundary extends Component<
           <p className={styles.message}>
             データの読み込みに失敗しました。ページを再読み込みしてください。
           </p>
-          <button
-            className={styles.button}
-            onClick={() => window.location.reload()}
-          >
+          <button className={styles.button} onClick={() => window.location.reload()}>
             再読み込み
           </button>
         </div>

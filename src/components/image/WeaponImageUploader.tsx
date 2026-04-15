@@ -8,11 +8,7 @@ interface WeaponImageUploaderProps {
   onDelete: () => void;
 }
 
-export function WeaponImageUploader({
-  hasImage,
-  onSave,
-  onDelete,
-}: WeaponImageUploaderProps) {
+export function WeaponImageUploader({ hasImage, onSave, onDelete }: WeaponImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

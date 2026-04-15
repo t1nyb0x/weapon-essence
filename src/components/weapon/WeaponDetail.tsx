@@ -14,13 +14,9 @@ export function WeaponDetail({ weapon, imageUrl }: WeaponDetailProps) {
         <h2 className={styles.name}>{weapon.name}</h2>
         <div className={styles.meta}>
           <span className={styles.rarity}>★{weapon.rarity}</span>
-          {weapon.category && (
-            <span className={styles.category}>{weapon.category}</span>
-          )}
+          {weapon.category && <span className={styles.category}>{weapon.category}</span>}
         </div>
-        {weapon.description && (
-          <p className={styles.description}>{weapon.description}</p>
-        )}
+        {weapon.description && <p className={styles.description}>{weapon.description}</p>}
       </section>
 
       <section className={styles.skillSection}>
@@ -31,11 +27,7 @@ export function WeaponDetail({ weapon, imageUrl }: WeaponDetailProps) {
       {imageUrl && (
         <section className={styles.imageSection}>
           <h3 className={styles.sectionTitle}>設定画像</h3>
-          <img
-            src={imageUrl}
-            alt={weapon.name}
-            className={styles.weaponImage}
-          />
+          <img src={imageUrl} alt={weapon.name} className={styles.weaponImage} />
         </section>
       )}
     </article>

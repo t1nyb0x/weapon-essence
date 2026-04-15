@@ -74,7 +74,9 @@ describe("weaponLoader", () => {
   });
 
   it("skills が空配列の武器も正常に返す", async () => {
-    const data = [{ id: "w-no-skill", name: "スキルなし", rarity: 1, skills: [] }];
+    const data = [
+      { id: "w-no-skill", name: "スキルなし", rarity: 1, skills: [] },
+    ];
     mockFetchOk(data);
     const result = await weaponLoader();
     expect(result).toHaveLength(1);

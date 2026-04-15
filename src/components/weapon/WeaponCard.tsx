@@ -22,9 +22,7 @@ export function WeaponCard({ weapon, imageUrl }: WeaponCardProps) {
       <div className={styles.info}>
         <span className={styles.name}>{weapon.name}</span>
         <span className={styles.rarity}>★{weapon.rarity}</span>
-        {weapon.category && (
-          <span className={styles.category}>{weapon.category}</span>
-        )}
+        {weapon.category && <span className={styles.category}>{weapon.category}</span>}
       </div>
     </Link>
   );

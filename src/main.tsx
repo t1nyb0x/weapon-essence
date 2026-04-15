@@ -13,5 +13,5 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <App imageStorage={imageStorage} />
-  </StrictMode>
+  </StrictMode>,
 );

@@ -5,8 +5,7 @@ function isValidWeapon(entry: unknown): entry is Weapon {
   const e = entry as Record<string, unknown>;
   if (typeof e["id"] !== "string" || e["id"].length === 0) return false;
   if (typeof e["name"] !== "string" || e["name"].length === 0) return false;
-  if (!Number.isInteger(e["rarity"]) || (e["rarity"] as number) < 1)
-    return false;
+  if (!Number.isInteger(e["rarity"]) || (e["rarity"] as number) < 1) return false;
   if (!Array.isArray(e["skills"])) return false;
   return true;
 }

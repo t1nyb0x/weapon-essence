@@ -12,7 +12,9 @@ export function WeaponsPage() {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [rarity, setRarity] = useState<number | undefined>(undefined);
 
-  const categories = [...new Set(weapons.map((w) => w.category).filter((c): c is string => !!c))].sort();
+  const categories = [
+    ...new Set(weapons.map((w) => w.category).filter((c): c is string => !!c)),
+  ].sort();
   const rarities = [...new Set(weapons.map((w) => w.rarity))].sort((a, b) => a - b);
 
   const filtered = weaponFilter(weapons, { nameQuery, category, rarity });
@@ -49,9 +51,7 @@ export function WeaponsPage() {
         </select>
         <select
           value={rarity ?? ""}
-          onChange={(e) =>
-            setRarity(e.target.value ? Number(e.target.value) : undefined)
-          }
+          onChange={(e) => setRarity(e.target.value ? Number(e.target.value) : undefined)}
           className={styles.select}
           aria-label="レアリティで絞り込み"
         >
