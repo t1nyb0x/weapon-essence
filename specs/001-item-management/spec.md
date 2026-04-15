@@ -2,6 +2,7 @@
 
 **フィーチャーブランチ**: `001-item-management`\
 **作成日**: 2026-04-15\
+**更新日**: 2026-04-16\
 **ステータス**: ドラフト\
 **入力**: ユーザー説明: "Endfield 武器管理アプリ ミニマム仕様"
 
@@ -112,15 +113,17 @@
 
 ### 機能要件
 
-- **FR-001**: システムは `weapons.json` で定義された武器一覧を画面に表示しなければならない（MUST）
-- **FR-001a**: `weapons.json` は静的ファイルとして配置し、外部APIや自動取得は行わない。更新は手動で行う（MUST）
-- **FR-002**: システムは各武器のID・名前・レアリティ・カテゴリ・画像（またはプレースホルダー）を一覧に表示しなければならない（MUST）
-- **FR-002a**: カテゴリが未設定（`undefined`）の武器は、カテゴリ欄に「-」を表示する。カテゴリ欄は DOM から除去せずレイアウトを統一する（MUST）
+- **FR-001**: システムはカテゴリ別静的 JSON ファイル（`public/weapons/{category}.json`）とエフェクトファイル（`public/effects/*.json`）から武器一覧をロードして画面に表示しなければならない（MUST）
+- **FR-001a**: 武器データはカテゴリごとに `public/weapons/sword.json`・`greatsword.json`・`handcannon.json`・`polearm.json`・`arts-unit.json` の5ファイルに分割して配置する静的ファイルとし、外部APIや自動取得は行わない（MUST）
+- **FR-001b**: スキルデータは `public/effects/base-effects.json`・`additional-effects.json`・`skill-effects.json` の3ファイルに定義し、ロード時に武器の `effectRefs` を解決して `skills` として付与する（MUST）
+- **FR-002**: システムは各武器の uid・名前・レアリティ・カテゴリ・画像（またはプレースホルダー）を一覧に表示しなければならない（MUST）
+- **FR-002a**: カテゴリはロード時に必ず付与されるため、常に表示する（MUST）
 - **FR-002b**: レアリティは「★N」形式（★アイコン＋数値。例: rarity=5 → ★5）で表示する。一覧・詳細画面で共通の形式とする（MUST）
 - **FR-003**: ユーザーは一覧から武器を選択して詳細画面に遷移できなければならない（MUST）
-- **FR-003a**: URL ルーティングは `/weapons`（一覧）と `/weapons/:weaponId`（詳細）の2画面構成とする（MUST）
+- **FR-003a**: URL ルーティングは `/weapons`（一覧）と `/weapons/:weaponId`（詳細）の2画面構成とする。`:weaponId` は `Weapon.uid`（例: `sword_1`）を使用する（MUST）
 - **FR-003b**: 存在しない `weaponId` へのURLアクセスは Not Found 画面を表示しなければならない（MUST）
-- **FR-003c**: `weapons.json` の取得は React Router v7 の `loader` 関数で実行し、コンポーネントは `useLoaderData()` で取得する。エラー時はルートの `errorElement` で ErrorBoundary 画面を表示する（MUST）
+- **FR-003c**: 武器データのロードは React Router v7 の `loader` 関数で実行し、コンポーネントは `useLoaderData()` で取得する。エラー時はルートの `errorElement` で ErrorBoundary 画面を表示する（MUST）
+- **FR-003d**: 詳細画面での武器検索は `Weapon.uid` を使って一致判定する（MUST）
 - **FR-004**: 詳細画面は武器ID・名前・レアリティ・カテゴリ・説明・画像（またはプレースホルダー）を表示しなければならない（MUST）
 - **FR-004a**: 詳細画面はその武器に紐づくスキルの一覧（**スキル名・効果説明のみ**、v1 ではレベル情報は表示しない）を表示しなければならない（MUST）
 - **FR-004b**: スキルが存在しない場合は「スキルなし」などの適切な空状態を表示しなければならない（MUST）
@@ -159,42 +162,52 @@
 
 ### キーエンティティ _（フィーチャーがデータを扱う場合に含める）_
 
-- **Weapon（武器）**: `weapons.json` に定義される管理対象。主要属性: `id`（一意識別子）、`name`（表示名）、`rarity`（レアリティ数値）、`category`（分類、任意）、`description`（説明文、任意）、`skills`（スキル配列、後述）
-- **Skill（スキル）**: 武器オブジェクトに **内包** されるスキル情報。`weapons.json` 内の各武器の `skills` 配列プロパティとして保持する（外部ファイル分離なし）。v1 の表示対象属性: `name`（スキル名）、`description`（効果説明）のみ。1つの武器に複数スキルが存在する（配列）
-- **UserWeaponImage（ユーザー画像）**: ユーザーが武器に紐づけたローカル画像。`weaponId` をキーとして端末ローカル（IndexedDB）に保存。主要属性: `weaponId`、`blob`（画像バイナリ）、`fileName`、`mimeType`、`updatedAt`
+- **Weapon（武器）**: カテゴリ別静的 JSON ファイル（`public/weapons/{category}.json`）に定義される管理対象。JSON 上の `RawWeapon` はスキル参照（`effectRefs`）のみを持ち、ロード時にカテゴリ・uid・解決済みスキル配列が付与されて `Weapon` となる。主要属性: `uid`（アプリ内一意識別子）、`id`（JSON上のID、形式: `{category}_{n}`）、`name`（表示名）、`rarity`（レアリティ数値）、`category`（分類、ロード時注入）、`description`（説明文、任意）、`skills`（解決済みスキル配列）
+- **Skill（スキル）**: `public/effects/` 以下の3つのエフェクトファイル（`base-effects.json` / `additional-effects.json` / `skill-effects.json`）に定義される。武器 JSON は `effectRefs`（`{type, id}` 参照）を持ち、ロード時に解決されて `Weapon.skills` として付与される。v1 の表示対象属性: `name`（スキル名）、`description`（効果説明）のみ。1つの武器に複数スキルが存在する（配列）
+- **UserWeaponImage（ユーザー画像）**: ユーザーが武器に紐づけたローカル画像。`weaponId`（= `Weapon.uid`）をキーとして端末ローカル（IndexedDB）に保存。主要属性: `weaponId`、`blob`（画像バイナリ）、`fileName`、`mimeType`、`updatedAt`
 
 ### データ型・値域の定義
 
-| フィールド    | 型       | 値域・制約                                             |
-| ------------- | -------- | ------------------------------------------------------ |
-| `id`          | `string` | 空文字不可。一覧内で一意                               |
-| `name`        | `string` | 空文字不可                                             |
-| `rarity`      | `number` | 1以上の整数。小数・負数・0 は不正値                    |
-| `category`    | `string` | 任意。省略時は `undefined`（フィルターで「全件」扱い） |
-| `description` | `string` | 任意。省略時は `undefined`（詳細画面で非表示）         |
-| `skills`      | `array`  | **必須。スキルがない場合は `[]`（空配列）を設定する**  |
+| フィールド    | 型               | 値域・制約                                                                                                             |
+| ------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `id`          | `string`         | 形式: `{category}_{n}`（例: `sword_1`）。空文字不可。同一カテゴリファイル内で一意                                      |
+| `name`        | `string`         | 空文字不可                                                                                                             |
+| `rarity`      | `number`         | 1以上の整数。小数・負数・0 は不正値                                                                                    |
+| `description` | `string`         | 任意。省略時は `undefined`（詳細画面で非表示）                                                                         |
+| `effectRefs`  | `array`          | **必須。スキル参照がない場合は `[]`（空配列）を設定する**。各要素は `{type, id}` 形式                                  |
+| `category`    | `WeaponCategory` | JSON には書かない。ロード時にファイル名から注入。`"sword" \| "greatsword" \| "handcannon" \| "polearm" \| "arts-unit"` |
+| `uid`         | `string`         | JSON には書かない。ロード時に `id` と同値で注入。ルーティング・画像キーとして使用                                      |
 
 **データ読み込みエラーの区別**:
 
-- `weapons.json` 自体が壊れている（JSONパース失敗）場合は **全体エラー** として扱い、エラー画面を表示する
+- いずれかのファイル（`/weapons/{category}.json` または `/effects/*.json`）が HTTP エラーまたは JSON パース失敗の場合は **全体エラー** として扱い、エラー画面を表示する
 - JSON形式は正しいが一部エントリが不正（`rarity` が整数でない、`id` が空など）な場合は **当該エントリのみ除外** し、他の正常な武器は表示する
+- `effectRefs` が参照するスキルIDがエフェクトファイルに存在しない場合は、そのスキル参照のみを無視して残りのスキルを表示する
 
 ### `weapons.json` 最小サンプル
 
 ```json
+// public/weapons/sword.json
 [
   {
-    "id": "weapon-001",
-    "name": "Sample Weapon",
+    "id": "sword_1",
+    "name": "サンプル武器",
     "rarity": 5,
-    "category": "sword",
-    "description": "説明文",
-    "skills": [
-      {
-        "name": "Skill A",
-        "description": "スキル説明"
-      }
+    "description": "説明文（省略可）",
+    "effectRefs": [
+      { "type": "skill", "id": 1 },
+      { "type": "base", "id": 2 }
     ]
+  }
+]
+
+// public/effects/skill-effects.json
+[
+  {
+    "id": 1,
+    "type": "skill",
+    "name": "スキル名",
+    "description": "スキル効果説明"
   }
 ]
 ```
