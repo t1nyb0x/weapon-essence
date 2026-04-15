@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WeaponsData",
+  "description": "weapons.json 静的ファイルのスキーマ定義。public/weapons.json として配置する。",
+  "type": "array",
+  "items": {
+    "$ref": "#/definitions/Weapon"
+  },
+  "definitions": {
+    "Weapon": {
+      "type": "object",
+      "required": ["id", "name", "rarity", "skills"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "武器の一意識別子。一覧内で重複不可"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "武器の表示名"
+        },
+        "rarity": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "レアリティ。1 以上の整数"
+        },
+        "category": {
+          "type": "string",
+          "description": "武器カテゴリ（任意）"
+        },
+        "description": {
+          "type": "string",
+          "description": "武器説明文（任意）。未設定時は詳細画面で非表示"
+        },
+        "skills": {
+          "type": "array",
+          "description": "スキル配列。スキルなし の場合は空配列 [] を設定すること",
+          "items": {
+            "$ref": "#/definitions/Skill"
+          }
+        }
+      }
+    },
+    "Skill": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "スキル名"
+        },
+        "description": {
+          "type": "string",
+          "description": "スキル効果説明（v1 ではレベル情報を含まない）"
+        }
+      }
+    }
+  }
+}
