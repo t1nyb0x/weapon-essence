@@ -1,5 +1,13 @@
 import type { Weapon } from "../models/types";
 
+const WEAPON_CATEGORY_FILES = [
+  "/weapons/sword.json",
+  "/weapons/greatsword.json",
+  "/weapons/handcannon.json",
+  "/weapons/polearm.json",
+  "/weapons/arts-unit.json",
+] as const;
+
 function isValidWeapon(entry: unknown): entry is Weapon {
   if (typeof entry !== "object" || entry === null) return false;
   const e = entry as Record<string, unknown>;
@@ -10,14 +18,14 @@ function isValidWeapon(entry: unknown): entry is Weapon {
   return true;
 }
 
-export async function weaponLoader(): Promise<Weapon[]> {
-  const response = await fetch("/weapons.json");
+async function fetchCategory(path: string): Promise<Weapon[]> {
+  const response = await fetch(path);
   if (!response.ok) {
-    throw new Error(`weapons.json の読み込みに失敗しました: ${response.status}`);
+    throw new Error(`${path} の読み込みに失敗しました: ${response.status}`);
   }
   const raw: unknown = await response.json();
   if (!Array.isArray(raw)) {
-    throw new Error("weapons.json の形式が不正です");
+    throw new Error(`${path} の形式が不正です`);
   }
   const weapons: Weapon[] = [];
   for (const entry of raw) {
@@ -28,4 +36,9 @@ export async function weaponLoader(): Promise<Weapon[]> {
     }
   }
   return weapons;
+}
+
+export async function weaponLoader(): Promise<Weapon[]> {
+  const results = await Promise.all(WEAPON_CATEGORY_FILES.map(fetchCategory));
+  return results.flat();
 }
